@@ -1,0 +1,522 @@
+﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>LAZER – Spieleportal mit Snake</title>
+    <style>
+        :root {
+            --bg1: #101724;
+            --bg2: #0c1220;
+            --muted: rgba(255,255,255,.72);
+            --accent: #00e0a7;
+            --accent2: #7afcff
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: Inter,system-ui,Segoe UI,Roboto,Arial
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            color: #eaf7f3;
+            background: radial-gradient(800px 500px at 10% 5%, rgba(0,224,167,.08), transparent), radial-gradient(800px 500px at 90% 95%, rgba(122,252,255,.08), transparent), linear-gradient(135deg,var(--bg1),var(--bg2));
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .shell {
+            width: 1100px;
+            max-width: 98vw;
+            border-radius: 16px;
+            padding: 18px;
+            background: linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));
+            box-shadow: 0 20px 60px rgba(0,0,0,.55),inset 0 -1px 0 rgba(255,255,255,.05);
+            display: grid;
+            grid-template-columns: 1.2fr .8fr;
+            gap: 18px
+        }
+
+        @media (max-width:980px) {
+            .shell {
+                grid-template-columns: 1fr
+            }
+        }
+
+        header {
+            grid-column: 1/-1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 6px 2px
+        }
+
+        .dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+            background: linear-gradient(135deg,var(--accent),var(--accent2));
+            box-shadow: 0 8px 24px rgba(0,224,167,.25)
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 26px;
+            letter-spacing: .5px
+        }
+
+        .sub {
+            color: var(--muted);
+            font-size: 13px;
+            margin-left: auto
+        }
+
+        .left, .right {
+            background: linear-gradient(180deg,rgba(255,255,255,.02),transparent);
+            border-radius: 12px;
+            padding: 16px
+        }
+
+        .section {
+            display: none
+        }
+
+            .section.active {
+                display: block
+            }
+
+        .btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,.08);
+            color: #eaf7f3;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: .18s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+                border-color: rgba(0,224,167,.25)
+            }
+
+        .primary {
+            background: linear-gradient(90deg,var(--accent),var(--accent2));
+            color: #052820;
+            border: none;
+            box-shadow: 0 10px 24px rgba(0,224,167,.15)
+        }
+
+        .muted {
+            color: var(--muted)
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap
+        }
+
+        .stack {
+            display: flex;
+            flex-direction: column;
+            gap: 10px
+        }
+
+        .card {
+            background: linear-gradient(180deg,rgba(0,0,0,.25),rgba(255,255,255,.02));
+            border: 1px solid rgba(255,255,255,.06);
+            border-radius: 12px;
+            padding: 14px
+        }
+
+        label {
+            font-size: 13px;
+            color: var(--muted)
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: rgba(255,255,255,.04);
+            border: 1px solid rgba(255,255,255,.07);
+            color: #fff;
+            outline: none
+        }
+
+        .title {
+            font-weight: 800;
+            margin: 2px 0 8px
+        }
+
+        .tile {
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,.06);
+            background: linear-gradient(180deg,rgba(255,255,255,.02),transparent);
+            text-align: left
+        }
+
+            .tile h4 {
+                margin: 0 0 6px
+            }
+
+        .leader {
+            max-height: 460px;
+            overflow: auto;
+            border: 1px solid rgba(255,255,255,.06);
+            border-radius: 12px
+        }
+
+            .leader h3 {
+                margin: 10px 12px
+            }
+
+        .lb-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            border-top: 1px solid rgba(255,255,255,.05)
+        }
+
+            .lb-item:first-child {
+                border-top: none
+            }
+
+        .rank {
+            font-weight: 800
+        }
+
+        .uname {
+            font-weight: 700
+        }
+
+        .score {
+            font-weight: 900
+        }
+
+        .gameWrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px
+        }
+
+        .hud {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center
+        }
+
+        .tag {
+            background: rgba(255,255,255,.06);
+            padding: 6px 10px;
+            border-radius: 10px;
+            font-weight: 700;
+            color: #dff8f0
+        }
+
+        canvas {
+            background: linear-gradient(180deg,#061117,#07131a);
+            border-radius: 12px;
+            width: 720px;
+            height: 540px;
+            max-width: 100%;
+            aspect-ratio: 4/3;
+            box-shadow: 0 10px 40px rgba(0,0,0,.6),inset 0 -1px 0 rgba(255,255,255,.03)
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <header>
+            <div class="dot"></div>
+            <h1>Website von LAZER</h1>
+            <div class="sub" id="userStatus">Nicht eingeloggt</div>
+        </header>
+
+        <!-- LEFT -->
+        <div class="left">
+            <!-- Auth -->
+            <section id="authSection" class="section active">
+                <div class="card stack">
+                    <div class="title">Anmelden oder Account erstellen</div>
+                    <div class="row" style="gap:12px;align-items:flex-end">
+                        <div style="min-width:240px;flex:1">
+                            <label for="email">E-Mail</label>
+                            <input id="email" type="email" placeholder="dein@email.de" autocomplete="email" />
+                        </div>
+                        <div style="min-width:200px;flex:1">
+                            <label for="password">Passwort</label>
+                            <input id="password" type="password" placeholder="Mind. 6 Zeichen" autocomplete="current-password" />
+                        </div>
+                        <div style="min-width:200px;flex:1">
+                            <label for="username">Benutzername (wird angezeigt)</label>
+                            <input id="username" type="text" placeholder="z. B. LAZER" autocomplete="nickname" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <button class="btn primary" id="btnRegister">Account erstellen</button>
+                        <button class="btn" id="btnLogin">Einloggen</button>
+                    </div>
+                    <div class="muted" style="font-size:13px">Hinweis: Firebase verwendet E-Mail + Passwort zur Anmeldung. Dein <b>Benutzername</b> erscheint in Bestenlisten.</div>
+                </div>
+            </section>
+
+            <!-- Main Menu -->
+            <section id="menuSection" class="section">
+                <div class="tile">
+                    <h4>🎮 Spiele</h4>
+                    <div class="row">
+                        <button class="btn primary" onclick="openSnake()">🐍 Spiel 1: Snake</button>
+                        <button class="btn" disabled>⚡ Spiel 2 (bald)</button>
+                        <button class="btn" disabled>🎯 Spiel 3 (bald)</button>
+                    </div>
+                </div>
+                <div class="tile" style="margin-top:12px">
+                    <h4>🏆 Top-Spieler (global)</h4>
+                    <div class="muted" style="margin-bottom:8px">Beste Scores aus allen Spielen (Top 10)</div>
+                    <div class="leader" id="globalLeaderboard"></div>
+                </div>
+                <div class="row" style="margin-top:12px">
+                    <button class="btn" id="btnLogout">Abmelden</button>
+                </div>
+            </section>
+
+            <!-- Snake -->
+            <section id="snakeSection" class="section">
+                <div class="row" style="justify-content:space-between;align-items:center">
+                    <div class="title">🐍 Snake</div>
+                    <div class="row">
+                        <button class="btn" onclick="backToMenu()">⬅ Zurück</button>
+                        <button class="btn primary" id="snakeStart">Start</button>
+                        <button class="btn" id="snakePause">Pause</button>
+                        <button class="btn" id="snakeReset">Neu</button>
+                    </div>
+                </div>
+                <div class="gameWrap">
+                    <canvas id="snakeCanvas" width="720" height="540" aria-label="Snake Spiel"></canvas>
+                    <div class="hud">
+                        <div class="tag">Score: <span id="snScore">0</span></div>
+                        <div class="tag">Level: <span id="snLevel">1</span></div>
+                        <div class="tag">Speed: <span id="snSpeed">Normal</span></div>
+                    </div>
+                </div>
+                <div class="tile" style="margin-top:12px">
+                    <h4>🏆 Bestenliste – Snake</h4>
+                    <div class="leader" id="snakeLeaderboard"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="right">
+            <div class="card">
+                <div class="title">Info</div>
+                <div class="muted">Melde dich an, spiele Snake und sichere dir deinen Platz in der Bestenliste. Steuerung: Pfeiltasten oder WASD • Leertaste: Start/Pause.</div>
+            </div>
+            <div class="card" style="margin-top:12px">
+                <div class="title">Tipps</div>
+                <ul class="muted" style="margin:8px 0 0 18px">
+                    <li>Mit jedem 50er-Block wirst du schneller.</li>
+                    <li>Kollisionen mit Wänden oder dir selbst beenden das Spiel.</li>
+                    <li>Dein Benutzername ist öffentlich sichtbar.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        /* ========= 1) Firebase Setup ========= */
+        const firebaseConfig = {
+            apiKey: "DEIN_API_KEY",
+            authDomain: "DEIN_PROJECT.firebaseapp.com",
+            projectId: "DEIN_PROJECT_ID",
+            storageBucket: "DEIN_PROJECT.appspot.com",
+            messagingSenderId: "XXX",
+            appId: "YYY"
+        };
+        // Trage oben deine echten Werte aus der Firebase Console ein.
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        /* ========= 2) UI Helpers ========= */
+        const $ = (id) => document.getElementById(id);
+        function show(id) { ["authSection", "menuSection", "snakeSection"].forEach(s => $(s).classList.remove("active")); $(id).classList.add("active") }
+        function setUserStatus(user) { $("userStatus").textContent = user ? `Eingeloggt als ${user.displayName || user.email}` : "Nicht eingeloggt"; }
+
+        /* ========= 3) Auth ========= */
+        $("btnRegister").addEventListener("click", async () => {
+            const email = $("email").value.trim(), pass = $("password").value, uname = ($("username").value.trim() || "Spieler");
+            if (!email || !pass) { alert("Bitte E-Mail und Passwort eingeben."); return; }
+            try {
+                const { user } = await auth.createUserWithEmailAndPassword(email, pass);
+                await user.updateProfile({ displayName: uname });
+                await db.collection("users").doc(user.uid).set({ username: uname, email, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                show("menuSection");
+            } catch (e) { alert(e.message); }
+        });
+
+        $("btnLogin").addEventListener("click", async () => {
+            const email = $("email").value.trim(), pass = $("password").value;
+            if (!email || !pass) { alert("Bitte E-Mail und Passwort eingeben."); return; }
+            try { await auth.signInWithEmailAndPassword(email, pass); show("menuSection"); } catch (e) { alert(e.message); }
+        });
+
+        $("btnLogout").addEventListener("click", async () => { await auth.signOut(); show("authSection"); });
+
+        auth.onAuthStateChanged(async (user) => {
+            setUserStatus(user);
+            if (user) {
+                $("username").value = user.displayName || "";
+                show("menuSection");
+                loadGlobalLeaderboard();
+                loadSnakeLeaderboard();
+            } else {
+                show("authSection");
+            }
+        });
+
+        /* ========= 4) Leaderboards =========
+           Collection: scores {gameId, uid, username, score, createdAt}
+        */
+        async function loadGlobalLeaderboard() {
+            const snap = await db.collection("scores").orderBy("score", "desc").orderBy("createdAt", "desc").limit(10).get();
+            const el = $("globalLeaderboard");
+            if (snap.empty) { el.innerHTML = '<div class="muted" style="padding:12px">Noch keine Einträge.</div>'; return; }
+            el.innerHTML = "";
+            let i = 1;
+            snap.forEach(doc => {
+                const d = doc.data();
+                el.insertAdjacentHTML("beforeend",
+                    `<div class="lb-item"><div><span class="rank">#${i++}</span> <span class="uname">${escapeHtml(d.username || "Spieler")}</span> <span class="muted">(${escapeHtml(d.gameId)})</span></div><div class="score">${d.score}</div></div>`);
+            });
+        }
+        async function loadSnakeLeaderboard() {
+            const snap = await db.collection("scores").where("gameId", "==", "snake").orderBy("score", "desc").orderBy("createdAt", "desc").limit(10).get();
+            const el = $("snakeLeaderboard");
+            if (snap.empty) { el.innerHTML = '<div class="muted" style="padding:12px">Noch keine Snake-Scores.</div>'; return; }
+            el.innerHTML = "";
+            let i = 1;
+            snap.forEach(doc => {
+                const d = doc.data();
+                el.insertAdjacentHTML("beforeend",
+                    `<div class="lb-item"><div><span class="rank">#${i++}</span> <span class="uname">${escapeHtml(d.username || "Spieler")}</span></div><div class="score">${d.score}</div></div>`);
+            });
+        }
+
+        /* ========= 5) Menü ========= */
+        function openSnake() { show("snakeSection"); resizeCanvasForGrid(); drawSnakeFrame(); }
+        function backToMenu() { show("menuSection"); }
+        window.openSnake = openSnake; window.backToMenu = backToMenu;
+
+        /* ========= 6) Snake (Google-Stil) ========= */
+        const cvs = $("snakeCanvas"), ctx = cvs.getContext("2d");
+        let cell = 24, cols = Math.floor(cvs.width / cell), rows = Math.floor(cvs.height / cell);
+        let snek = [], dir = { x: 1, y: 0 }, nextDir = { x: 1, y: 0 }, food = null;
+        let score = 0, level = 1, tickMs = 110, loopId = null, paused = false;
+        const foods = ["🍏", "🍎", "🍓", "🍒", "🍇", "🍉", "🍌", "🍍", "🥝", "🥕", "🍔", "🍕", "🌮", "🌯", "🍩", "🥐", "🧀", "🥑", "🥦", "🌭"];
+
+        function resizeCanvasForGrid() { cols = Math.floor(cvs.width / cell); rows = Math.floor(cvs.height / cell); }
+        function resetSnake() {
+            snek = [{ x: Math.floor(cols / 2), y: Math.floor(rows / 2) }];
+            dir = { x: 1, y: 0 }; nextDir = { x: 1, y: 0 }; score = 0; level = 1; tickMs = 110; paused = false;
+            $("snScore").textContent = score; $("snLevel").textContent = level; $("snSpeed").textContent = "Normal";
+            spawnFood(); stopLoop();
+        }
+        function spawnFood() {
+            while (true) {
+                const p = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) };
+                if (!snek.some(s => s.x === p.x && s.y === p.y)) { food = { ...p, glyph: foods[Math.floor(Math.random() * foods.length)] }; break; }
+            }
+        }
+        function startLoop() { if (loopId) return; loopId = setInterval(tick, tickMs); }
+        function stopLoop() { if (loopId) { clearInterval(loopId); loopId = null; } }
+        $("snakeStart").addEventListener("click", () => { if (!loopId) { if (snek.length === 0) resetSnake(); startLoop(); } else { paused = false; startLoop(); } });
+        $("snakePause").addEventListener("click", () => { paused = !paused; if (paused) stopLoop(); else startLoop(); });
+        $("snakeReset").addEventListener("click", () => { resetSnake(); drawSnakeFrame(); });
+
+        window.addEventListener("keydown", (e) => {
+            if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "w", "a", "s", "d", "W", "A", "S", "D", " "].includes(e.key)) e.preventDefault();
+            switch (e.key) {
+                case "ArrowUp": case "w": case "W": if (dir.y === 0) nextDir = { x: 0, y: -1 }; break;
+                case "ArrowDown": case "s": case "S": if (dir.y === 0) nextDir = { x: 0, y: 1 }; break;
+                case "ArrowLeft": case "a": case "A": if (dir.x === 0) nextDir = { x: -1, y: 0 }; break;
+                case "ArrowRight": case "d": case "D": if (dir.x === 0) nextDir = { x: 1, y: 0 }; break;
+                case " ": if (loopId) { $("snakePause").click(); } else { $("snakeStart").click(); } break;
+            }
+        });
+
+        function tick() {
+            dir = nextDir;
+            const head = { x: snek[0].x + dir.x, y: snek[0].y + dir.y };
+            // Wände & Selbst-Kollision = Game Over
+            if (head.x < 0 || head.y < 0 || head.x >= cols || head.y >= rows || snek.some(s => s.x === head.x && s.y === head.y)) { gameOver(); return; }
+            snek.unshift(head);
+            if (food && head.x === food.x && head.y === food.y) {
+                score += 10; $("snScore").textContent = score;
+                if (score > 0 && score % 50 === 0) { level = Math.min(10, level + 1); $("snLevel").textContent = level; tickMs = Math.max(50, tickMs - 8); stopLoop(); startLoop(); $("snSpeed").textContent = tickMs <= 60 ? "Schnell" : "Normal"; }
+                spawnFood();
+            } else { snek.pop(); }
+            drawSnakeFrame();
+        }
+
+        function drawSnakeFrame() {
+            // Hintergrund
+            ctx.fillStyle = "#07131a"; ctx.fillRect(0, 0, cvs.width, cvs.height);
+            // Raster
+            ctx.save(); ctx.globalAlpha = .06; ctx.strokeStyle = "#bfeee4"; ctx.lineWidth = 1;
+            for (let x = 0; x <= cols; x++) { ctx.beginPath(); ctx.moveTo(x * cell + 0.5, 0); ctx.lineTo(x * cell + 0.5, cvs.height); ctx.stroke(); }
+            for (let y = 0; y <= rows; y++) { ctx.beginPath(); ctx.moveTo(0, y * cell + 0.5); ctx.lineTo(cvs.width, y * cell + 0.5); ctx.stroke(); }
+            ctx.restore();
+            // Food
+            if (food) { const fx = food.x * cell, fy = food.y * cell; ctx.save(); ctx.font = Math.floor(cell * .8) + "px 'Segoe UI Emoji'"; ctx.textBaseline = "middle"; ctx.textAlign = "center"; ctx.fillText(food.glyph, fx + cell / 2, fy + cell / 2 + 1); ctx.restore(); }
+            // Snake
+            for (let i = 0; i < snek.length; i++) {
+                const seg = snek[i], x = seg.x * cell, y = seg.y * cell, g = ctx.createLinearGradient(x, y, x + cell, y + cell);
+                if (i === 0) { g.addColorStop(0, "#00ffd0"); g.addColorStop(1, "#18a0ff"); } else { g.addColorStop(0, "hsl(165 85% 42%)"); g.addColorStop(1, "hsl(165 85% 32%)"); }
+                roundedRect(x + 2, y + 2, cell - 4, cell - 4, 6, g);
+                if (i === 0) { ctx.fillStyle = "#031c16"; ctx.beginPath(); ctx.arc(x + cell * .7, y + cell * .35, Math.max(2, cell * .08), 0, Math.PI * 2); ctx.fill(); }
+            }
+        }
+        function roundedRect(x, y, w, h, r, fill) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); }
+
+        async function gameOver() {
+            stopLoop(); drawSnakeFrame();
+            const user = auth.currentUser; const uname = user?.displayName || "Spieler";
+            try {
+                await db.collection("scores").add({ gameId: "snake", uid: user ? user.uid : null, username: uname, score, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+            } catch (e) { console.error("Score speichern fehlgeschlagen:", e); }
+            await loadSnakeLeaderboard(); await loadGlobalLeaderboard();
+            setTimeout(() => alert(`Game Over!\nDein Score: ${score}`), 100);
+        }
+
+        // Init
+        function escapeHtml(str) { return String(str).replace(/[&<>"']/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s])); }
+        function startUp() { resetSnake(); drawSnakeFrame(); }
+        startUp();
+    </script>
+</body>
+</html>
